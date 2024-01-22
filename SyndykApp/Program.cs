@@ -1,5 +1,6 @@
 ﻿using Microsoft.Playwright;
 using SyndykApp.Model;
+using SyndykApp.Services;
 using System;
 using System.Data.SqlClient;
 using System.Text.RegularExpressions;
@@ -7,69 +8,7 @@ class Program
 {
     public static async Task Main()
     {
-        var typyNieruchomosci = new[] { "mieszkanie", "kawalerka", "dom", "dzialka", "lokal", "garaz" };
-
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
-        {
-            Headless = true,
-            ExecutablePath = @"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-        });
-
-        var ads = new List<Advertisement>();
-
-        foreach (var typ in typyNieruchomosci)
-        {
-            var customHeaders = new Dictionary<string, string>
-            {
-                ["User-Agent"] = "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0"
-            };
-
-            // Set custom headers for the page
-            var url = $"https://www.otodom.pl/pl/wyniki/sprzedaz/{typ}/cala-polska?limit=36&ownerTypeSingleSelect=ALL&description=syndyk&by=DEFAULT&direction=DESC&viewType=listing&page=1";
-            var page = await browser.NewPageAsync();
-            
-            await page.SetExtraHTTPHeadersAsync(customHeaders);
-
-            await page.GotoAsync(url);
-
-            var asd = await page.ContentAsync();
-
-            var ogloszenia = await page.QuerySelectorAllAsync("li[data-cy='listing-item']");
-
-            foreach (var ogloszenie in ogloszenia)
-            {
-                var tytulElement = await ogloszenie.QuerySelectorAsync("span[data-cy='listing-item-title']");
-                var tytul = await tytulElement.InnerTextAsync();
-
-                var linkElement = await ogloszenie.QuerySelectorAsync("a[data-cy='listing-item-link']");
-                var link = await linkElement.GetAttributeAsync("href");
-                link = String.Format("https://www.otodom.pl/{0}", link);
-
-                var article = await ogloszenie.QuerySelectorAsync("article");
-                var cenaSpan = await article.QuerySelectorAsync("div:nth-last-child(2) span:first-child");
-                var cenaText = await cenaSpan.InnerTextAsync();
-                var cena  = Int32.Parse(string.Concat(Regex.Matches(cenaText, @"\d").Select(match => match.Value)));
-
-                Console.WriteLine($"Typ: {typ}, Tytuł: {tytul}, Link: {link}, Cena: {cena}");
-
-                ads.Add(new Advertisement()
-                {
-                    Title = tytul,
-                    HtmlContent = null,
-                    Link = link,
-                    Price = cena,
-                    OffertID = ""
-                });
-            }
-        }
-        playwright.Dispose();
-        await browser.DisposeAsync();
-
-
-        await Task.Run(async () => {
-            await FillHTMLContent(ads);
-        });
+        await Otodom.Run();
     }
 
     private static async Task FillHTMLContent(IEnumerable<Advertisement> ads)
