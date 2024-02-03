@@ -65,7 +65,7 @@ namespace SyndykApp.Services
 
                         var offertID = await advertObject.GetID(page, link);
 
-                        Console.WriteLine($"Typ: {typ}, Tytuł: {title}, ID: {offertID}, Cena: {price} zł, Strona: {pageNo}");
+                        Console.WriteLine($"OTODOM - Tytuł: {title}, ID: {offertID}, Cena: {price} zł, Strona: {pageNo}");
 
                         //ads.Add(new Advertisement()
                         //{

@@ -1,14 +1,21 @@
 ﻿using Microsoft.Playwright;
 using SyndykApp.Model;
 using SyndykApp.Services;
-using System;
 using System.Data.SqlClient;
 using System.Text.RegularExpressions;
 class Program
 {
     public static async Task Main()
     {
-        Otodom.Run();
+        //Otodom.Run();
+        await Olx.Run();
+
+        string str1 = @"a a s  w e q w e q a a s  w e 1 q w e p";
+        string str2 = @"a a s  w e 1 q w e p a a s  w e 1 q w e p";
+
+        var similarity2 = SimilarityService.AreDescriptionsSimilar(str1, str2);
+
+        Console.WriteLine($"Podobieństwo: {similarity2:P}");
     }
 
     private static async Task FillHTMLContent(IEnumerable<Advertisement> ads)
