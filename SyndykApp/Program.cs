@@ -8,7 +8,7 @@ class Program
 {
     public static async Task Main()
     {
-        await Otodom.Run();
+        Otodom.Run();
     }
 
     private static async Task FillHTMLContent(IEnumerable<Advertisement> ads)
