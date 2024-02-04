@@ -1,6 +1,7 @@
 ﻿using Microsoft.Playwright;
 using SyndykApp.Model;
 using SyndykApp.Model.WebPageQuerySelectors;
+using SyndykApp.SQL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +30,6 @@ namespace SyndykApp.Services
 
             foreach (var typ in typyNieruchomosci)
             {
-
                 foreach(var pageNo in Enumerable.Range(1, 15))
                 {
                     var customHeaders = new Dictionary<string, string>
@@ -47,10 +47,6 @@ namespace SyndykApp.Services
 
                     var adverts = await advertObject.GetAdverts(page);
 
-                    Console.WriteLine("-----------------------------------------------------------");
-                    Console.WriteLine(adverts.Count);
-                    Console.WriteLine("-----------------------------------------------------------");
-
                     if(adverts.Count == 0)
                     {
                         break;
@@ -63,18 +59,22 @@ namespace SyndykApp.Services
 
                         var price = await advertObject.GetPrice(advertisement);
 
-                        var offertID = await advertObject.GetID(page, link);
+                        var description = await advertObject.GetDescription(page, link);
 
-                        Console.WriteLine($"OTODOM - Tytuł: {title}, ID: {offertID}, Cena: {price} zł, Strona: {pageNo}");
+                        Console.WriteLine($"OTODOM - Tytuł: {title}, ID: {1}, Cena: {price} zł, Strona: {pageNo}");
 
-                        //ads.Add(new Advertisement()
-                        //{
-                        //    Title = tytul,
-                        //    HtmlContent = null,
-                        //    Link = link,
-                        //    Price = amount,
-                        //    OffertID = ""
-                        //});
+                        var ad = new Advertisement
+                        {
+                            Link = link,
+                            Price = price,
+                            Title = title,
+                            Description = description
+                        };
+
+                        using (var dbContext = new DatabaseContext())
+                        {
+                            dbContext.InsertAdvertisement(ad);
+                        }
                     }
                 }
             }

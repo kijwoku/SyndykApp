@@ -1,6 +1,7 @@
 ﻿using Microsoft.Playwright;
 using SyndykApp.Model;
 using SyndykApp.Model.WebPageQuerySelectors;
+using SyndykApp.SQL;
 
 namespace SyndykApp.Services
 {
@@ -36,10 +37,6 @@ namespace SyndykApp.Services
 
                 var adverts = await advertObject.GetAdverts(page);
 
-                Console.WriteLine("-----------------------------------------------------------");
-                Console.WriteLine(adverts.Count);
-                Console.WriteLine("-----------------------------------------------------------");
-
                 if (adverts.Count == 0)
                 {
                     break;
@@ -59,14 +56,20 @@ namespace SyndykApp.Services
 
                     Console.WriteLine($"OLX - Tytuł: {title}, ID: {1}, Cena: {price} zł, Strona: {pageNo}");
 
-                    //ads.Add(new Advertisement()
-                    //{
-                    //    Title = tytul,
-                    //    HtmlContent = null,
-                    //    Link = link,
-                    //    Price = amount,
-                    //    OffertID = ""
-                    //});
+                    var ad = new Advertisement
+                    {
+                        Link = link,
+                        Price = price,
+                        Title = title,
+                        Description = description
+                    };
+
+                    using (var dbContext = new DatabaseContext())
+                    {
+                        dbContext.InsertAdvertisement(ad);
+                    }
+
+                    
                 }
             }
             playwright.Dispose();

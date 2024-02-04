@@ -1,4 +1,6 @@
-﻿namespace SyndykApp.Services
+﻿using System.Text.RegularExpressions;
+
+namespace SyndykApp.Services
 {
     public static class SimilarityService
     {
@@ -6,6 +8,20 @@
         public static bool AreDescriptionsSimilar(string s, string t)
         {
             return GetDamerauLevenshteinDistance(s, t) < 100;
+        }
+
+        public static string GetFirstLetterOfEveryWord(string text)
+        {
+            return String.Join("",Regex.Matches(text, @"\b(\w{1})")
+                .OfType<Match>()
+                .Select(m => m.Groups[1].Value)
+                .ToArray());
+                
+        }
+
+        public static string RemoveHtmlTags(string input)
+        {
+            return Regex.Replace(input, "<.*?>", String.Empty);
         }
 
         private static int GetDamerauLevenshteinDistance(string s, string t)

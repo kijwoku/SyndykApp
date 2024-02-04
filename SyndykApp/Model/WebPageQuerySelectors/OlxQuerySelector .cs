@@ -1,4 +1,5 @@
 ﻿using Microsoft.Playwright;
+using SyndykApp.Services;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
@@ -26,10 +27,17 @@ namespace SyndykApp.Model.WebPageQuerySelectors
         {
             var linkElement = await element.QuerySelectorAsync("a");
             var link = await linkElement.GetAttributeAsync("href");
-            return String.Format("https://www.olx.pl{0}", link);
+            if (link.Contains("www.otodom.pl"))
+            {
+                return link;
+            }
+            else
+            {
+                return String.Format("https://www.olx.pl{0}", link);
+            }
         }
 
-        public async Task<decimal?> GetPrice(IElementHandle element)
+        public async Task<decimal> GetPrice(IElementHandle element)
         {
             if(element != null)
             {
@@ -47,7 +55,7 @@ namespace SyndykApp.Model.WebPageQuerySelectors
                 }
                 return bills + (decimal)pennies / 100;
             }
-            return null;
+            return 0;
         }
 
         public async Task<string?> GetDescription(IPage page, string url)
@@ -70,9 +78,9 @@ namespace SyndykApp.Model.WebPageQuerySelectors
                     await page.GotoAsync(url);
 
                     var pageContent = await page.ContentAsync();
-                    var descriptionDiv = await page.QuerySelectorAsync("div[data-cy='ad_description'] div");
-                    var description = RemoveHtmlTags((await descriptionDiv.InnerHTMLAsync()).Trim());
-
+                    var querySelector = url.Contains("www.otodom.pl") ? "div[data-cy='adPageAdDescription']" : "div[data-cy='ad_description'] div";
+                    var descriptionDiv = await page.QuerySelectorAsync(querySelector);
+                    var description = SimilarityService.RemoveHtmlTags((await descriptionDiv.InnerHTMLAsync()).Trim());
 
                     return description;
                 }
@@ -109,9 +117,5 @@ namespace SyndykApp.Model.WebPageQuerySelectors
             return offertID.ToString();
         }
 
-        private string RemoveHtmlTags(string input)
-        {
-            return Regex.Replace(input, "<.*?>", String.Empty);
-        }
     }
 }
