@@ -7,16 +7,9 @@ namespace SyndykApp.Services
 {
     public static class Otodom
     {
-        public static async Task Run(decimal maxPrice = 0)
+        public static async Task Run(decimal maxPrice, IBrowser browser)
         {
             var typyNieruchomosci = new[] { "mieszkanie", "kawalerka", "dom", "dzialka", "lokal", "garaz" };
-
-            using var playwright = await Playwright.CreateAsync();
-            await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
-            {
-                Headless = true,
-                ExecutablePath = @"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-            });
 
             var advertObject = new OtodomQuerySelector();
 
@@ -41,7 +34,9 @@ namespace SyndykApp.Services
 
                     await page.SetExtraHTTPHeadersAsync(customHeaders);
 
-                    await page.GotoAsync(url);
+                    await page.GotoAsync(url, new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
+
+                    await Task.Delay(5000);
 
                     var anyAdverts = await advertObject.CheckIfAnyAdvertsOnPage(page);
 
@@ -66,8 +61,6 @@ namespace SyndykApp.Services
                     await page.CloseAsync();
                 }
             }
-            playwright.Dispose();
-            await browser.DisposeAsync();
         }
     }
 }

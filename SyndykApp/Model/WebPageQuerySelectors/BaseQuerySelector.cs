@@ -64,7 +64,9 @@ namespace SyndykApp.Model.WebPageQuerySelectors
 
                 await page.SetExtraHTTPHeadersAsync(_customHeaders);
 
-                await page.GotoAsync(url);
+                await page.GotoAsync(url, new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
+
+                await Task.Delay(1000);
 
                 var descriptionDiv = await page.QuerySelectorAsync(querySelector);
                 if (descriptionDiv != null)

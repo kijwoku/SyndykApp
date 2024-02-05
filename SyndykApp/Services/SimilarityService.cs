@@ -188,12 +188,15 @@ namespace SyndykApp.Services
                 }
                 catch (Exception ex)
                 {
-                    var link = await advertObject.GetLink(advertisement);
-                    Console.WriteLine("WYSTĄPIŁ BŁĄD !!!", link);
+                    Console.ForegroundColor = ConsoleColor.Red;
+
+                    Console.WriteLine(String.Format("WYSTĄPIŁ BŁĄD w portalu ${0}", advertObject.WebPage));
+
+                    Console.ResetColor();
                 }
                 
             }
-            await Task.Delay(10000); // aby nie dostać bloka od strony
+            await Task.Delay(5000); // aby nie dostać bloka od strony
         }
     }
 }

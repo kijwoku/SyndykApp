@@ -12,7 +12,7 @@ namespace SyndykApp.Model.WebPageQuerySelectors
 
         public string GetDescriptionSelector(string url = "")
         {
-            return "iframe + div div";
+            return "section div:is([style*='max-height'])";
         }
 
         public async Task<bool> CheckIfAnyAdvertsOnPage(IPage element, int pageNumber = 0)
