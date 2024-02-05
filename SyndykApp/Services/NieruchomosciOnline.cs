@@ -5,11 +5,11 @@ using SyndykApp.SQL;
 
 namespace SyndykApp.Services
 {
-    public static class Otodom
+    public static class NieruchomosciOnline
     {
         public static async Task Run(decimal maxPrice = 0)
         {
-            var typyNieruchomosci = new[] { "mieszkanie", "kawalerka", "dom", "dzialka", "lokal", "garaz" };
+            var typyNieruchomosci = new[] { "mieszkanie", "dom", "dzialka", "lokal-uzytkowy", "budynek-uzytkowy" };
 
             using var playwright = await Playwright.CreateAsync();
             await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
@@ -18,7 +18,7 @@ namespace SyndykApp.Services
                 ExecutablePath = @"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
             });
 
-            var advertObject = new OtodomQuerySelector();
+            var advertObject = new NieruchomosciOnlineQuerySelector();
 
             var advertsList = new List<Advertisement>();
 
@@ -29,37 +29,36 @@ namespace SyndykApp.Services
 
             foreach (var typ in typyNieruchomosci)
             {
-                foreach(var pageNo in Enumerable.Range(1, 15))
+                foreach(var pageNo in Enumerable.Range(1, 2))
                 {
                     var customHeaders = new Dictionary<string, string>
                     {
                         ["User-Agent"] = "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0"
                     };
 
-                    var url = $"https://www.otodom.pl/pl/wyniki/sprzedaz/{typ}/cala-polska?limit=36&ownerTypeSingleSelect=ALL&description=syndyk&by=DEFAULT&direction=DESC&viewType=listing&page={pageNo}";
+                    var url = $"https://www.nieruchomosci-online.pl/szukaj.html?3,{typ},sprzedaz&o=modDate,desc&q=syndyk&p={pageNo}";
                     var page = await browser.NewPageAsync();
 
                     await page.SetExtraHTTPHeadersAsync(customHeaders);
 
                     await page.GotoAsync(url);
 
-                    var anyAdverts = await advertObject.CheckIfAnyAdvertsOnPage(page);
-
+                    var anyAdverts = await advertObject.CheckIfAnyAdvertsOnPage(page, pageNo);
+                    var asd = await page.ContentAsync();
                     if (anyAdverts)
                     {
-                        var adverts = await advertObject.GetAdverts(page, "div[data-cy='listing-item']");
+                        var adverts = await advertObject.GetAdverts(page, "div.tile-tile");
 
                         Console.WriteLine("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-                        Console.WriteLine(String.Format("OTODOM - strona: {0} Liczba Ogłoszeń: {1}", pageNo, adverts.Count));
+                        Console.WriteLine(String.Format("NieruchomosciOnline - strona: {0} Liczba Ogłoszeń: {1}", pageNo, adverts.Count));
                         Console.WriteLine("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
-                        await SimilarityService.ProcessAds(adverts, advertObject, advertsList, maxPrice);
                         await SimilarityService.ProcessAds(adverts, advertObject, advertsList, maxPrice);
                     }
                     else
                     {
                         Console.WriteLine("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-                        Console.WriteLine(String.Format("OTODOM - strona: {0} BRAK OGŁOSZEŃ", pageNo));
+                        Console.WriteLine(String.Format("NieruchomosciOnline - strona: {0} BRAK OGŁOSZEŃ", pageNo));
                         Console.WriteLine("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
                         break;
                     }

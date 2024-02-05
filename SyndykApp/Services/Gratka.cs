@@ -5,7 +5,7 @@ using SyndykApp.SQL;
 
 namespace SyndykApp.Services
 {
-    public static class Olx
+    public static class Gratka
     {
         public static async Task Run(decimal maxPrice = 0)
         {
@@ -16,7 +16,7 @@ namespace SyndykApp.Services
                 ExecutablePath = @"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
             });
 
-            var advertObject = new OlxQuerySelector();
+            var advertObject = new GratkaQuerySelector();
 
             var advertsList = new List<Advertisement>();
 
@@ -33,7 +33,7 @@ namespace SyndykApp.Services
                 };
 
                 // Set custom headers for the page
-                var url = $"https://www.olx.pl/nieruchomosci/q-syndyk/?page={pageNo}&search%5Border%5D=created_at%3Adesc";
+                var url = $"https://gratka.pl/nieruchomosci/q/syndyk?page={pageNo}&sort=newest";
                 var page = await browser.NewPageAsync();
 
                 await page.SetExtraHTTPHeadersAsync(customHeaders);
@@ -46,10 +46,10 @@ namespace SyndykApp.Services
 
                 if (anyAdverts)
                 {
-                    var adverts = await advertObject.GetAdverts(page, "div[data-cy='l-card']");
+                    var adverts = await advertObject.GetAdverts(page, "div.listing__teaserWrapper");
 
                     Console.WriteLine("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-                    Console.WriteLine(String.Format("OLX - strona: {0} Liczba Ogłoszeń: {1}", pageNo, adverts.Count));
+                    Console.WriteLine(String.Format("GRATKA - strona: {0} Liczba Ogłoszeń: {1}", pageNo, adverts.Count));
                     Console.WriteLine("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
                     await SimilarityService.ProcessAds(adverts, advertObject, advertsList, maxPrice);
@@ -57,7 +57,7 @@ namespace SyndykApp.Services
                 else
                 {
                     Console.WriteLine("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-                    Console.WriteLine(String.Format("OLX - strona: {0} BRAK OGŁOSZEŃ", pageNo));
+                    Console.WriteLine(String.Format("GRATKA - strona: {0} BRAK OGŁOSZEŃ", pageNo));
                     Console.WriteLine("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
                     break;
                 }

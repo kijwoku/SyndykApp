@@ -3,28 +3,31 @@ using SyndykApp.Model.Exceptions;
 
 namespace SyndykApp.Model.WebPageQuerySelectors
 {
-    public class OlxQuerySelector : BaseQuerySelector, IBaseQuerySelector
+    public class GratkaQuerySelector : BaseQuerySelector, IBaseQuerySelector
     {
-        public string TitleSelector { get => "div[type='list'] h6"; }
+        public string TitleSelector { get => "h2.teaserUnified__title"; }
 
-        public string WebPage { get => "OLX   "; }
+        public string WebPage { get => "GRATKA"; }
 
 
         public string GetDescriptionSelector(string url = "")
         {
-            return (url.Contains("www.otodom.pl") ? "div[data-cy='adPageAdDescription']" : "div[data-cy='ad_description'] div") ?? String.Empty;
+            return "div[data-cy='offerDescription']";
         }
         public async Task<bool> CheckIfAnyAdvertsOnPage(IPage element, int pageNumber = 0)
         {
-            if (element.Url.IndexOf("page=") != -1)
+            var selector = "input[data-cy='paginationInput']";
+            var activePage = await element.QuerySelectorAsync(selector);
+            if (activePage != null)
             {
-                var pageNo = Int32.Parse(element.Url.Substring(element.Url.IndexOf("page=") + 5, 1));
-                return pageNumber == pageNo;
+                var pageNumberText = await activePage.InputValueAsync();
+                if (pageNumberText != String.Empty)
+                {
+                    var number = int.Parse(pageNumberText);
+                    return pageNumber == number;
+                }
             }
-            else
-            {
-                return true;
-            }
+            return false;
         }
 
         public override async Task<string> GetLink(IElementHandle element)
@@ -36,16 +39,9 @@ namespace SyndykApp.Model.WebPageQuerySelectors
                 var link = await linkElement.GetAttributeAsync("href");
                 if (link != null && link.Length > 10)
                 {
-                    if (link.Contains("www.otodom.pl"))
-                    {
-                        return link;
-                    }
-                    else
-                    {
-                        return String.Format("https://www.olx.pl{0}", link);
-                    }
+                    return link;
                 }
-                
+
             }
             throw new HTMLElementNotFoundException("Link element not found!");
         }
@@ -54,11 +50,15 @@ namespace SyndykApp.Model.WebPageQuerySelectors
         {
             if (element != null)
             {
-                var selector = "p[data-testid='ad-price']";
+                var selector = "p[data-cy='teaserPrice']";
                 var priceSpan = await element.QuerySelectorAsync(selector);
                 if (priceSpan != null)
                 {
                     var fullPrice = await priceSpan.InnerTextAsync();
+                    if (fullPrice.Contains("\n"))
+                    {
+                        fullPrice = fullPrice.Substring(0, fullPrice.IndexOf("\n"));
+                    }
                     return GetPriceQuota(fullPrice);
                 }
 
